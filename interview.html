@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            user-select: none;
+        }
+        body {
+            margin:0;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 300px;
+            height: 300px;
+            margin-top: 50px;
+            margin-left: 50px;
+        }
+        .rect {
+            position:absolute;
+            border:1px dashed black;
+            pointer-events: none;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <form action="" class="form">
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <br />
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <br />
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+            <input type="checkbox">
+        </form>
+    </div>
+    <div class="rect"></div>
+
+
+    <script>
+        let startPosition = {}; // 起始点坐标(x, y)
+        let endPosition = {}; // 结束点坐标(x, y)
+        let area = {}; // 选框左上角坐标(startX, startY)
+        let boxes = document.getElementsByTagName("input");
+
+        document.addEventListener('mousedown', getStartPosition);
+        document.addEventListener('mouseup', onMouseUp);
+
+        function getStartPosition(event) {
+            startPosition.x = event.clientX;
+            startPosition.y = event.clientY;
+            document.addEventListener('mousemove', updateEndPosition)
+        }
+
+        function updateEndPosition(event) {
+            //即将重选
+            clearChecked();
+            
+            endPosition.x = event.clientX;
+            endPosition.y = event.clientY;
+            let center = getArea(); // center对象:{选框中心坐标(x, y), 选框宽度width, 选框高度height}
+            showBox(center);
+
+            // 依据两矩形中心点的坐标判断是否相交
+            for (let i = 0; i < boxes.length; i++) {
+                let node = boxes.item(i);
+                let nodeInfo = node.getBoundingClientRect();
+                let nodeCenterX = nodeInfo.left + Math.floor(nodeInfo.width / 2);
+                let nodeCenterY = nodeInfo.top + Math.floor(nodeInfo.height / 2);
+
+                let w = Math.abs(nodeCenterX - center.x);
+                let h = Math.abs(nodeCenterY - center.y);
+                if (w < Math.floor((center.width + nodeInfo.width) / 2) && h < Math.floor((center.height + nodeInfo.height) / 2)) {
+                    node.checked = true;
+                }
+            }
+
+        }
+
+        function clearChecked() {
+            for (let i = 0; i < boxes.length; i++) {
+                boxes.item(i).checked = false;
+            }
+        }
+
+        function showBox(center) {
+            let elem = document.querySelector('.rect');
+            elem.style.width = center.width + 'px';
+            elem.style.height = center.height + 'px';
+            let left = center.x - Math.floor(center.width / 2);
+            let top = center.y - Math.floor(center.height / 2);
+            elem.style.top = top + 'px';
+            elem.style.left = left + 'px';
+            elem.style.display = 'block';
+        }
+
+        function onMouseUp(event) {
+            document.removeEventListener('mousemove', updateEndPosition);
+            let elem = document.querySelector('.rect');
+            elem.style.width = '0px';
+            elem.style.height = '0px';
+            elem.style.top = '0px';
+            elem.style.left = '0px';
+            elem.style.display = 'none';
+        }
+
+        function getArea() {
+            // 选框左上角坐标;
+            area.startX = Math.min(startPosition.x, endPosition.x);
+            area.startY = Math.min(startPosition.y, endPosition.y);
+
+            let width = Math.abs(endPosition.x - startPosition.x);
+            let height = Math.abs(endPosition.y - startPosition.y);
+            let centerX = area.startX + Math.floor(width / 2);
+            let centerY = area.startY + Math.floor(height / 2);
+            return {"x":centerX, "y":centerY, "width":width, "height":height};
+        }
+    </script>
+</body>
+</html>
